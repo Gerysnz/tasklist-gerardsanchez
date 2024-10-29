@@ -1,0 +1,82 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#addTaskBtn {
+    font-size: 16px;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    cursor: pointer;
+    padding: 0;
+    background-color: #f7f7f7;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#addTaskBtn:hover {
+    background-color: #e7e7e7;
+}
+
+.accordion {
+    width: 100%;
+    margin-top: 50px;
+    border-radius: 5px;
+}
+
+.deleteTaskBtn,
+.editTaskBtn {
+    background-color: #f7f7f7;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 5px;
+    float: right;
+    margin-left: 5px;
+}
+
+.deleteTaskBtn:hover,
+.editTaskBtn:hover {
+    background-color: #e7e7e7;
+}
+
+dialog {
+    border: none;
+    padding: 20px;
+    border-radius: 4px;
+}
+
+.task-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+input {
+    padding: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#saveTaskBtn {
+    padding: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: #f7f7f7;
+    border-radius: 4px;
+}
+
+#saveTaskBtn:hover {
+    background-color: #e7e7e7;
+}

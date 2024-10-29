@@ -7,96 +7,12 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <style>
-            body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-    }
-
-    .header-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    #addTaskBtn {
-        font-size: 16px;
-        width: 30px;
-        height: 30px;
-        line-height: 30px;
-        text-align: center;
-        cursor: pointer;
-        padding: 0;
-        background-color: #f7f7f7;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-
-    #addTaskBtn:hover {
-        background-color: #e7e7e7;
-    }
-
-    .accordion {
-        width: 100%;
-        margin-top: 50px;
-        border-radius: 5px;
-    }
-
-    .deleteTaskBtn {
-        background-color: #f7f7f7;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 18px;
-        cursor: pointer;
-        padding: 5px;
-        float: right;
-    }
-
-    .deleteTaskBtn:hover {
-        background-color: #e7e7e7;
-    }
-
-    dialog {
-        border: none;
-        padding: 20px;
-        border-radius: 4px;
-    }
-
-    .task-input-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    input {
-        padding: 10px;
-        margin-bottom: 10px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    #saveTaskBtn {
-        padding: 8px;
-        font-size: 14px;
-        cursor: pointer;
-        border: 1px solid #ccc;
-        background-color: #f7f7f7;
-        border-radius: 4px;
-    }
-
-    #saveTaskBtn:hover {
-        background-color: #e7e7e7;
-    }
-
-       
-    </style>
+   <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
 
     <div class="header-container">
         <h1>Lista de Tareas</h1>
-        
-        
         <button id="addTaskBtn">+</button>
     </div>
 
@@ -109,12 +25,19 @@
             <input type="text" id="taskInput" placeholder="Escribe tu tarea aquí">
             <button id="saveTaskBtn">OK</button>
         </div>
-        
+    </div>
+
+    <!-- Dialogo para editar tarea -->
+    <div id="editTaskDialog" title="Editar Tarea" style="display:none;">
+        <div class="task-input-wrapper">
+            <input type="text" id="editTaskInput" placeholder="Edita tu tarea aquí">
+            <button id="updateTaskBtn">Ok</button>
+        </div>
     </div>
 
     <script>
         $(function() {
-            // inicializar el acordion
+            // inicializar el acordeón
             $("#taskList").accordion({
                 collapsible: true,
                 active: false,
@@ -136,21 +59,34 @@
                 const taskText = $("#taskInput").val().trim();
 
                 if (taskText !== '') {
-                    
                     const accordionItem = $("<h3></h3>").text(taskText).addClass("accordion-header");
                     const accordionContent = $("<div></div>").addClass("accordion-content").append(
+                        $("<button class='editTaskBtn'>Editar</button>").on("click", function() {
+                            $("#editTaskInput").val(taskText); // Cargar el texto actual en el campo de edición
+                            $("#editTaskDialog").dialog({
+                                modal: true,
+                                close: function() {
+                                    $("#editTaskInput").val(''); // Limpiar el campo de texto al cerrar
+                                }
+                            });
+                            $("#updateTaskBtn").off("click").on("click", function() {
+                                const updatedTaskText = $("#editTaskInput").val().trim();
+                                if (updatedTaskText !== '') {
+                                    accordionItem.text(updatedTaskText); // Actualiza el texto de la tarea
+                                    $("#editTaskDialog").dialog("close");
+                                }
+                            });
+                        }),
                         $("<button class='deleteTaskBtn'>x</button>").on("click", function() {
                             accordionItem.remove();
                             accordionContent.remove();
                             $("#taskList").accordion("refresh"); // Actualiza el acordeón
                         })
-                    ).append(" Aquí puedes añadir más detalles sobre la tarea.");
+                    ).append(" ");
 
-                   
                     $("#taskList").append(accordionItem).append(accordionContent);
                     $("#taskList").accordion("refresh"); // Refrescar el acordeón para mostrar la nueva tarea
 
-                    
                     $("#taskDialog").dialog("close");
                 }
             });
