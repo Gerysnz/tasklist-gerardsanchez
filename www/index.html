@@ -7,91 +7,136 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-   <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
 
-    <div class="header-container">
-        <h1>Lista de Tareas</h1>
-        <button id="addTaskBtn">+</button>
+<div class="header-container">
+    <h1>Lista de Tareas</h1>
+    <button id="addTaskBtn">+</button>
+</div>
+
+<!-- Acordeones para mostrar las tareas -->
+<div id="taskList" class="accordion"></div>
+
+<!-- Dialogo para añadir tarea -->
+<div id="taskDialog" title="Añadir Tarea" style="display:none;">
+    <div class="task-input-wrapper">
+        <input type="text" id="taskInput" placeholder="Escribe tu tarea aquí">
+        <button id="saveTaskBtn">OK</button>
     </div>
+</div>
 
-    <!-- Acordeones para mostrar las tareas -->
-    <div id="taskList" class="accordion"></div>
-
-    <!-- Dialogo para añadir tarea -->
-    <div id="taskDialog" title="Añadir Tarea" style="display:none;">
-        <div class="task-input-wrapper">
-            <input type="text" id="taskInput" placeholder="Escribe tu tarea aquí">
-            <button id="saveTaskBtn">OK</button>
-        </div>
+<!-- Dialogo para editar tarea -->
+<div id="editTaskDialog" title="Editar Tarea" style="display:none;">
+    <div class="task-input-wrapper">
+        <input type="text" id="editTaskInput" placeholder="Edita tu tarea aquí">
+        <button id="updateTaskBtn">Ok</button>
     </div>
+</div>
 
-    <!-- Dialogo para editar tarea -->
-    <div id="editTaskDialog" title="Editar Tarea" style="display:none;">
-        <div class="task-input-wrapper">
-            <input type="text" id="editTaskInput" placeholder="Edita tu tarea aquí">
-            <button id="updateTaskBtn">Ok</button>
-        </div>
-    </div>
+<script>
+    $(function () {
+        // Inicializar el acordeón
+        $("#taskList").accordion({
+            collapsible: true,
+            active: false,
+            heightStyle: "content"
+        });
 
-    <script>
-        $(function() {
-            // inicializar el acordeón
-            $("#taskList").accordion({
-                collapsible: true,
-                active: false,
-                heightStyle: "content"
-            });
+        // cargamo tareas desde localStorage 
+        loadTasks();
 
-            //para abrir el diálogo
-            $("#addTaskBtn").on("click", function() {
-                $("#taskDialog").dialog({
-                    modal: true,
-                    close: function() {
-                        $("#taskInput").val(''); // Limpiar el campo de texto al cerrar
-                    }
-                });
-            });
-
-            // para agregar la tarea
-            $("#saveTaskBtn").on("click", function() {
-                const taskText = $("#taskInput").val().trim();
-
-                if (taskText !== '') {
-                    const accordionItem = $("<h3></h3>").text(taskText).addClass("accordion-header");
-                    const accordionContent = $("<div></div>").addClass("accordion-content").append(
-                        $("<button class='editTaskBtn'>Editar</button>").on("click", function() {
-                            $("#editTaskInput").val(taskText); // Cargar el texto actual en el campo de edición
-                            $("#editTaskDialog").dialog({
-                                modal: true,
-                                close: function() {
-                                    $("#editTaskInput").val(''); // Limpiar el campo de texto al cerrar
-                                }
-                            });
-                            $("#updateTaskBtn").off("click").on("click", function() {
-                                const updatedTaskText = $("#editTaskInput").val().trim();
-                                if (updatedTaskText !== '') {
-                                    accordionItem.text(updatedTaskText); // Actualiza el texto de la tarea
-                                    $("#editTaskDialog").dialog("close");
-                                }
-                            });
-                        }),
-                        $("<button class='deleteTaskBtn'>x</button>").on("click", function() {
-                            accordionItem.remove();
-                            accordionContent.remove();
-                            $("#taskList").accordion("refresh"); // Actualiza el acordeón
-                        })
-                    ).append(" ");
-
-                    $("#taskList").append(accordionItem).append(accordionContent);
-                    $("#taskList").accordion("refresh"); // Refrescar el acordeón para mostrar la nueva tarea
-
-                    $("#taskDialog").dialog("close");
+        // Para abrir el diálogo
+        $("#addTaskBtn").on("click", function () {
+            $("#taskDialog").dialog({
+                modal: true,
+                close: function () {
+                    $("#taskInput").val(''); 
                 }
             });
         });
-    </script>
+
+        // Para agregar la tarea
+        $("#saveTaskBtn").on("click", function () {
+            const taskText = $("#taskInput").val().trim();
+
+            if (taskText !== '') {
+                addTask(taskText);
+                $("#taskDialog").dialog("close");
+            }
+        });
+
+        let currentEditTaskId = null; //variable para almacenar el ID de la tarea que etamos editando
+        let currentEditTaskHeader = null; 
+
+        function addTask(taskText) {
+            const taskId = Date.now(); 
+            const task = { id: taskId, text: taskText };
+
+            //guardamoss la tarea en localStorage
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.push(task);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+
+            
+            createAccordionItem(task);
+        }
+
+        function createAccordionItem(task) {
+            const accordionItem = $("<h3></h3>").text(task.text).addClass("accordion-header");
+            const accordionContent = $("<div></div>").addClass("accordion-content").append(
+                $("<button class='editTaskBtn'>Editar</button>").on("click", function () {
+                    currentEditTaskId = task.id; // guardamo el ID de la tarea que estamos editando 
+                    currentEditTaskHeader = accordionItem;
+                    $("#editTaskInput").val(task.text);
+                    $("#editTaskDialog").dialog({
+                        modal: true,
+                        close: function () {
+                            $("#editTaskInput").val(''); 
+                        }
+                    });
+                }),
+                $("<button class='deleteTaskBtn'>x</button>").on("click", function () {
+                    deleteTask(task.id);
+                    accordionItem.remove();
+                    accordionContent.remove();
+                    $("#taskList").accordion("refresh"); 
+                })
+            ).append(" ");
+
+            $("#taskList").append(accordionItem).append(accordionContent);
+            $("#taskList").accordion("refresh"); //actualiza el acordion
+        }
+
+        $("#updateTaskBtn").on("click", function () {
+            const updatedTaskText = $("#editTaskInput").val().trim();
+            if (updatedTaskText !== '' && currentEditTaskId !== null) {
+                updateTask(currentEditTaskId, updatedTaskText);
+               
+                currentEditTaskHeader.text(updatedTaskText); // Cambia el texto en el DOM directamente
+                $("#editTaskDialog").dialog("close");
+            }
+        });
+
+        function updateTask(taskId, updatedTaskText) {
+            let tasks = JSON.parse(localStorage.getItem('tasks'));
+            tasks = tasks.map(task => task.id === taskId ? { ...task, text: updatedTaskText } : task);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function deleteTask(taskId) {
+            let tasks = JSON.parse(localStorage.getItem('tasks'));
+            tasks = tasks.filter(task => task.id !== taskId);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.forEach(task => createAccordionItem(task));
+        }
+    });
+</script>
 
 </body>
 </html>
